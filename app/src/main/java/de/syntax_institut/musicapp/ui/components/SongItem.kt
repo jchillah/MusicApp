@@ -1,6 +1,13 @@
 package de.syntax_institut.musicapp.ui.components
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
@@ -91,7 +98,7 @@ fun SongItemPreview() {
                 title = "Shape of You",
                 artist = "Ed Sheeran",
                 duration = "3:53",
-                coverUrl = "https://via.placeholder.com/150"
+                coverUrl = "https://i.ytimg.com/vi/bXSyEhwpJLo/maxresdefault.jpg"
             ),
             onRemove = {}
         )
