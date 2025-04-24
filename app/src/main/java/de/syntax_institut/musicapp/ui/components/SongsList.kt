@@ -3,7 +3,7 @@ package de.syntax_institut.musicapp.ui.components
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn                         // Für LazyColumn :contentReference[oaicite:0]{index=0}
-import androidx.compose.foundation.lazy.items                            // Für items(...) im LazyListScope :contentReference[oaicite:1]{index=1}
+import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue

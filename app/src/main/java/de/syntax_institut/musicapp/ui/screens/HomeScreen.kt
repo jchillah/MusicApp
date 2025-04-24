@@ -42,7 +42,6 @@ fun HomeScreen(
     val fabBackgroundColor = if (isDarkTheme) LightGold else LightGreen
     val gridButtonColor = if (isDarkTheme) LightGold else LightGreen
     val searchButtonColor = if (isDarkTheme) LightGold else LightGreen
-
     val iconColor = if (isDarkTheme) DeepBlack else DeepBlack
 
     Scaffold(

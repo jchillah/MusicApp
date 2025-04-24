@@ -1,7 +1,7 @@
 package de.syntax_institut.musicapp.ui.components
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -12,6 +12,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import de.syntax_institut.musicapp.ui.viewModel.SongViewModel
 
 /**
@@ -31,21 +32,19 @@ fun SongsGrid(
 
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
-        modifier = modifier
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(songs, key = { it.id }) { song ->
-            Box(
+            SongItem(
+                song = song,
+                onRemove = { id -> viewModel.removeSongById(id) },
                 modifier = Modifier
+                    .fillMaxWidth()
                     .aspectRatio(1f)
                     .clickable { onPlay(song.id) }
-            ) {
-                SongItem(
-                    song = song,
-                    onRemove = { id -> viewModel.removeSongById(id) },
-                    modifier = Modifier
-                        .fillMaxWidth()    // oder .fillMaxSize(), je nach gewünschtem Layout
-                )
-            }
+            )
         }
     }
 }

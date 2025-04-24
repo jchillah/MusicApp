@@ -72,4 +72,8 @@ android {
         implementation(libs.androidx.navigation.compose)
 
         implementation(libs.kotlinx.serialization)
+
+        implementation (libs.androidx.runtime)
+        implementation (libs.androidx.lifecycle.runtime.ktx.v262)
+
     }
