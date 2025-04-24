@@ -1,6 +1,5 @@
 package de.syntax_institut.musicapp.ui.screens
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -27,10 +26,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -40,7 +35,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
-import de.syntax_institut.musicapp.data.Song
 import de.syntax_institut.musicapp.ui.theme.MusicAppTheme
 import de.syntax_institut.musicapp.ui.viewModel.SongViewModel
 
@@ -52,13 +46,10 @@ fun PlayerScreen(
     viewModel: SongViewModel = viewModel()
 ) {
     val songs by viewModel.songs.collectAsState()
-    val song: Song = songs.first { it.id == songId }
+    val isPlaying by viewModel.isPlaying.collectAsState()
+    val position by viewModel.position.collectAsState()
 
-    var isPlaying by remember { mutableStateOf(false) }
-    var position by remember { mutableFloatStateOf(0f) }
-
-    val backgroundColor = MaterialTheme.colorScheme.background
-    val onBackgroundColor = MaterialTheme.colorScheme.onBackground
+    val song = songs.firstOrNull { it.id == songId } ?: return
 
     Scaffold(
         topBar = {
@@ -66,10 +57,7 @@ fun PlayerScreen(
                 title = { Text("Player") },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Zurück"
-                        )
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Zurück")
                     }
                 }
             )
@@ -79,8 +67,7 @@ fun PlayerScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(24.dp)
-                .background(backgroundColor),
+                .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             AsyncImage(
@@ -90,13 +77,13 @@ fun PlayerScreen(
                 contentScale = ContentScale.Crop
             )
             Spacer(modifier = Modifier.height(16.dp))
-            Text(song.title, style = MaterialTheme.typography.headlineSmall, color = onBackgroundColor)
-            Text(song.artist, style = MaterialTheme.typography.bodyMedium, color = onBackgroundColor)
+            Text(song.title, style = MaterialTheme.typography.headlineSmall)
+            Text(song.artist, style = MaterialTheme.typography.bodyMedium)
             Spacer(modifier = Modifier.height(24.dp))
 
             Slider(
                 value = position,
-                onValueChange = { position = it },
+                onValueChange = { viewModel.updatePosition(it) },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -108,17 +95,16 @@ fun PlayerScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = { /* vorheriger Song */ }) {
-                    Icon(Icons.Default.SkipPrevious, contentDescription = "Zurück", tint = onBackgroundColor)
+                    Icon(Icons.Default.SkipPrevious, contentDescription = "Zurück")
                 }
-                IconButton(onClick = { isPlaying = !isPlaying }) {
+                IconButton(onClick = { viewModel.togglePlayPause() }) {
                     Icon(
                         imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                        contentDescription = if (isPlaying) "Pause" else "Play",
-                        tint = onBackgroundColor
+                        contentDescription = if (isPlaying) "Pause" else "Play"
                     )
                 }
                 IconButton(onClick = { /* nächster Song */ }) {
-                    Icon(Icons.Default.SkipNext, contentDescription = "Weiter", tint = onBackgroundColor)
+                    Icon(Icons.Default.SkipNext, contentDescription = "Weiter")
                 }
             }
         }
