@@ -21,8 +21,8 @@ import de.syntax_institut.musicapp.ui.screens.HomeScreen
 import de.syntax_institut.musicapp.ui.screens.PlayerScreen
 import de.syntax_institut.musicapp.ui.screens.ProfileScreen
 import de.syntax_institut.musicapp.ui.screens.SearchScreen
-import de.syntax_institut.musicapp.ui.viewmodel.SongViewModel
 import de.syntax_institut.musicapp.ui.theme.MusicAppTheme
+import de.syntax_institut.musicapp.ui.viewModel.SongViewModel
 
 @Composable
 fun AppStart() {

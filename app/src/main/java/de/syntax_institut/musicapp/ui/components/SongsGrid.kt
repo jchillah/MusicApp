@@ -12,7 +12,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import de.syntax_institut.musicapp.ui.viewmodel.SongViewModel
+import de.syntax_institut.musicapp.ui.viewModel.SongViewModel
 
 /**
  * Gitter-Ansicht mit Klick-Callback.

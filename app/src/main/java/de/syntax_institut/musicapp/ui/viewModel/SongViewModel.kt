@@ -1,4 +1,4 @@
-package de.syntax_institut.musicapp.ui.viewmodel
+package de.syntax_institut.musicapp.ui.viewModel
 
 import androidx.lifecycle.ViewModel
 import de.syntax_institut.musicapp.data.DataSource
@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.asStateFlow
  */
 class SongViewModel : ViewModel() {
     // Mutabler StateFlow, intern schreibbar
-    private val _songs = MutableStateFlow<List<Song>>(DataSource.songs)
+    private val _songs = MutableStateFlow(DataSource.songs)
 
     /** StateFlow mit der Liste aller Songs (nur lesbar von außen). */
     val songs: StateFlow<List<Song>> = _songs.asStateFlow()
