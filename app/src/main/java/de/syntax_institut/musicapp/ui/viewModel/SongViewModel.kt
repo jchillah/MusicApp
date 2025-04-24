@@ -1,28 +1,51 @@
 package de.syntax_institut.musicapp.ui.viewModel
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import de.syntax_institut.musicapp.data.DataSource
 import de.syntax_institut.musicapp.data.Song
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.*
 
 /**
- * ViewModel für die Verwaltung der Song-Daten.
+ * ViewModel für die Verwaltung der Song-Daten und Suchfunktion.
  */
 class SongViewModel : ViewModel() {
-    // Mutabler StateFlow, intern schreibbar
-    private val _songs = MutableStateFlow(DataSource.songs)
-
-    /** StateFlow mit der Liste aller Songs (nur lesbar von außen). */
+    // Intern: Liste aller Songs
+    private val _songs = MutableStateFlow<List<Song>>(DataSource.songs)
+    /** Flow mit der Liste aller Songs (nur lesbar von außen). */
     val songs: StateFlow<List<Song>> = _songs.asStateFlow()
 
+    // Intern: aktueller Suchbegriff
+    private val _query = MutableStateFlow("")
+    /** Flow mit dem aktuellen Suchbegriff. */
+    val query: StateFlow<String> = _query.asStateFlow()
+
     /**
-     * Entfernt einen Song anhand seiner ID aus der Liste.
-     *
-     * @param songId ID des zu löschenden Songs.
+     * Aktualisiert den Suchbegriff und löst Neuberechnung der gefilterten Liste aus.
      */
+    fun updateQuery(newQuery: String) {
+        _query.value = newQuery
+    }
+
+    /**
+     * Gefilterte Song-Liste basierend auf Suchbegriff.
+     */
+    val filteredSongs: StateFlow<List<Song>> = combine(_songs, _query) { list, q ->
+        if (q.isBlank()) list
+        else list.filter { it.title.contains(q, ignoreCase = true) || it.artist.contains(q, ignoreCase = true) }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000L),
+        initialValue = _songs.value
+    )
+
+    /** Entfernt einen Song anhand seiner ID aus der Liste. */
     fun removeSongById(songId: Int) {
         _songs.value = _songs.value.filterNot { it.id == songId }
+    }
+
+    /** Lädt Songs (z.B. nach Hinzufügen eines neuen Songs). */
+    fun loadSongs(newList: List<Song>) {
+        _songs.value = newList
     }
 }

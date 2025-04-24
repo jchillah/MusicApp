@@ -21,9 +21,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -41,14 +38,8 @@ fun SearchScreen(
     navController: NavController,
     viewModel: SongViewModel = viewModel()
 ) {
-    val allSongs by viewModel.songs.collectAsState()
-    var query by remember { mutableStateOf("") }
-    val filtered = remember(query, allSongs) {
-        allSongs.filter {
-            it.title.contains(query, ignoreCase = true) ||
-                    it.artist.contains(query, ignoreCase = true)
-        }
-    }
+    val query by viewModel.query.collectAsState()
+    val filtered by viewModel.filteredSongs.collectAsState()
 
     Scaffold(
         topBar = {
@@ -56,10 +47,7 @@ fun SearchScreen(
                 title = { Text("Suche") },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Zurück"
-                        )
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Zurück")
                     }
                 }
             )
@@ -73,12 +61,14 @@ fun SearchScreen(
         ) {
             OutlinedTextField(
                 value = query,
-                onValueChange = { query = it },
+                onValueChange = { viewModel.updateQuery(it) },
                 label = { Text("Suche nach Song oder Künstler") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
+
             Spacer(modifier = Modifier.height(12.dp))
+
             LazyColumn {
                 items(filtered, key = { it.id }) { song ->
                     SongItem(
