@@ -11,20 +11,21 @@ import kotlinx.coroutines.launch
 import java.util.Locale
 
 class PlayerViewModel : ViewModel() {
+
     private var mediaPlayer: MediaPlayer? = null
 
     private val _isPlaying = MutableStateFlow(false)
     val isPlaying: StateFlow<Boolean> = _isPlaying
 
     private val _position = MutableStateFlow(0f)
-    val position: StateFlow<Float> get() = _position
+    val position: StateFlow<Float> = _position
 
     private val _totalDuration = MutableStateFlow(0f)
-    val totalDuration: StateFlow<Float> get() = _totalDuration
+    val totalDuration: StateFlow<Float> = _totalDuration
 
     private var positionJob: Job? = null
 
-    /** Dauer im Format "m:ss" → Sekunden als Float */
+    /** Duration im Format "m:ss" → Sekunden als Float */
     fun parseDuration(durationString: String): Float {
         val (m, s) = durationString.split(":").map { it.toInt() }
         return (m * 60 + s).toFloat()
@@ -34,7 +35,7 @@ class PlayerViewModel : ViewModel() {
         positionJob?.cancel()
         positionJob = viewModelScope.launch {
             while (mediaPlayer?.isPlaying == true) {
-                _position.value = (mediaPlayer?.currentPosition ?: 0).div(1000f)
+                _position.value = (mediaPlayer?.currentPosition ?: 0) / 1000f
                 delay(1000)
             }
         }
@@ -45,49 +46,52 @@ class PlayerViewModel : ViewModel() {
         positionJob = null
     }
 
-    /**
-     * Setzt die Gesamtdauer (in Sekunden).
-     * Wird bei jedem Songwechsel aus den Metadaten (parseDuration) gesetzt.
-     */
-    fun updateTotalDuration(durationInSeconds: Float) {
-        _totalDuration.value = durationInSeconds
+    /** Setzt die Gesamtdauer (in Sekunden). */
+    fun updateTotalDuration(seconds: Float) {
+        _totalDuration.value = seconds
+    }
+
+    /** Springt im laufenden Song an eine neue Position. */
+    fun updatePosition(newPos: Float) {
+        _position.value = newPos
+        mediaPlayer?.seekTo((newPos * 1000).toInt())
     }
 
     /**
-     * Wird gerufen, wenn der Slider bewegt wird.
+     * Startet einen komplett neuen Track (beendet vorherigen, lädt und startet neu).
      */
-    fun updatePosition(newPosition: Float) {
-        _position.value = newPosition
-        mediaPlayer?.seekTo((newPosition * 1000).toInt())
-    }
-
-    /**
-     * Startet oder pausiert den Player.
-     * Wenn ein neuer Song-URL übergeben wird, muss vorher stopAndRelease() aufgerufen werden.
-     */
-    fun playPause(songUrl: String) {
-        if (mediaPlayer == null) {
-            mediaPlayer = MediaPlayer().apply {
-                setDataSource(songUrl)
-                prepareAsync()
-                setOnPreparedListener {
-                    start()
-                    _isPlaying.value = true
-                    startUpdatingPosition()
-                }
-                setOnCompletionListener {
-                    stopAndRelease()
-                }
-            }
-        } else {
-            if (_isPlaying.value) {
-                mediaPlayer?.pause()
-                stopUpdatingPosition()
-            } else {
-                mediaPlayer?.start()
+    fun playSong(songUrl: String, durationSeconds: Float) {
+        // alten Player freigeben
+        stopAndRelease()
+        // neue Dauer setzen
+        _totalDuration.value = durationSeconds
+        // neuen Player aufbauen
+        mediaPlayer = MediaPlayer().apply {
+            setDataSource(songUrl)
+            prepareAsync()
+            setOnPreparedListener {
+                start()
+                _isPlaying.value = true
                 startUpdatingPosition()
             }
-            _isPlaying.value = !_isPlaying.value
+            setOnCompletionListener {
+                stopAndRelease()
+            }
+        }
+    }
+
+    /** Toggles Pause/Continue im aktuellen Track */
+    fun togglePlayPause() {
+        mediaPlayer?.let { mp ->
+            if (mp.isPlaying) {
+                mp.pause()
+                _isPlaying.value = false
+                stopUpdatingPosition()
+            } else {
+                mp.start()
+                _isPlaying.value = true
+                startUpdatingPosition()
+            }
         }
     }
 
@@ -114,7 +118,7 @@ class PlayerViewModel : ViewModel() {
         return String.format(Locale.getDefault(), "%02d:%02d", m, s)
     }
 
-    /** Wird aufgerufen, wenn wir minimieren wollen (setzt Pause) */
+    /** Wird beim Minimieren aufgerufen (pausiert) */
     fun minimize() {
         mediaPlayer?.pause()
         _isPlaying.value = false

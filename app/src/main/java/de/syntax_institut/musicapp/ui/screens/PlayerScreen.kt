@@ -28,17 +28,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import de.syntax_institut.musicapp.ui.navigation.AppDestinations
-import de.syntax_institut.musicapp.ui.theme.MusicAppTheme
 import de.syntax_institut.musicapp.ui.viewModel.PlayerViewModel
 import de.syntax_institut.musicapp.ui.viewModel.SongListViewModel
 
@@ -51,18 +49,23 @@ fun PlayerScreen(
     playerViewModel: PlayerViewModel = viewModel(),
     onMinimize: () -> Unit
 ) {
-    val isPlaying     by playerViewModel.isPlaying.collectAsState(initial = false)
-    val position      by playerViewModel.position.collectAsState(initial = 0f)
+    val isPlaying by playerViewModel.isPlaying.collectAsState(initial = false)
+    val position by playerViewModel.position.collectAsState(initial = 0f)
     val totalDuration by playerViewModel.totalDuration.collectAsState(initial = 0f)
-    val songs         by songListViewModel.songs.collectAsState(initial = emptyList())
-    val song          = songs.firstOrNull { it.id == songId } ?: return
+    val songs by songListViewModel.songs.collectAsState(initial = emptyList())
+    val song = songs.firstOrNull { it.id == songId } ?: return
 
-    // Bei Wechsel der songId: altes Release, Dauer setzen, neuen Song starten
-    LaunchedEffect(songId) {
+    val currentSongId by rememberUpdatedState(newValue = songId)
+
+    LaunchedEffect(currentSongId) {
         playerViewModel.stopAndRelease()
         playerViewModel.updateTotalDuration(playerViewModel.parseDuration(song.duration))
-        playerViewModel.playPause(song.audioUrl)
+        playerViewModel.playSong(
+            song.audioUrl,
+            durationSeconds = playerViewModel.parseDuration(song.duration)
+        )
     }
+
 
     Scaffold(
         topBar = {
@@ -71,8 +74,7 @@ fun PlayerScreen(
                 navigationIcon = {
                     IconButton(onClick = {
                         onMinimize()
-                        // zurück zum Home, ohne BackStack-Inclusive
-                        navController.popBackStack(AppDestinations.Home, false)
+                        navController.popBackStack(AppDestinations.Home, inclusive = false)
                     }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Zurück")
                     }
@@ -103,6 +105,7 @@ fun PlayerScreen(
             Text(song.artist, style = MaterialTheme.typography.bodyMedium)
             Spacer(Modifier.height(24.dp))
 
+            // Zeit-Anzeige
             Row(
                 Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -112,6 +115,7 @@ fun PlayerScreen(
             }
             Spacer(Modifier.height(8.dp))
 
+            // Slider
             Slider(
                 value = position,
                 onValueChange = { playerViewModel.updatePosition(it) },
@@ -120,6 +124,7 @@ fun PlayerScreen(
             )
             Spacer(Modifier.height(16.dp))
 
+            // Steuerung: vorher, play/pause, nächster
             Row(
                 Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly,
@@ -134,7 +139,7 @@ fun PlayerScreen(
                 }) {
                     Icon(Icons.Default.SkipPrevious, contentDescription = "Vorheriger Song")
                 }
-                IconButton(onClick = { playerViewModel.playPause(song.audioUrl) }) {
+                IconButton(onClick = { playerViewModel.togglePlayPause() }) {
                     Icon(
                         imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
                         contentDescription = if (isPlaying) "Pause" else "Play"
@@ -151,19 +156,5 @@ fun PlayerScreen(
                 }
             }
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PlayerScreenPreview() {
-    MusicAppTheme {
-        PlayerScreen(
-            songId = 1,
-            navController = rememberNavController(),
-            songListViewModel = SongListViewModel(),
-            playerViewModel = PlayerViewModel(),
-            onMinimize = {}
-        )
     }
 }
