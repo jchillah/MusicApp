@@ -19,7 +19,7 @@ object DataSource {
             "Ed Sheeran",
             "3:53",
             "https://i.ytimg.com/vi/bXSyEhwpJLo/maxresdefault.jpg",
-            audioUrl = "https://cdn.pixabay.com/download/audio/2024/03/13/audio_ffef7ac5e1.mp3?filename=dope-sample-type-beat-rap-instrumental-2024-195824.mp3"
+            audioUrl = "https://archive.org/download/shape-of-you-ed-sheeran/Shape%20Of%20You%20-%20Ed%20Sheeran.mp3"
         ),
         Song(
             2,
