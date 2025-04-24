@@ -28,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -51,15 +52,20 @@ fun PlayerScreen(
     val isPlaying by playerViewModel.isPlaying.collectAsState(initial = false)
     val position by playerViewModel.position.collectAsState(initial = 0f)
     val totalDuration by playerViewModel.totalDuration.collectAsState(initial = 0f)
-    val songs  by songListViewModel.songs.collectAsState(initial = emptyList())
-    val song  = songs.firstOrNull { it.id == songId } ?: return
+    val songs by songListViewModel.songs.collectAsState(initial = emptyList())
+    val song = songs.firstOrNull { it.id == songId } ?: return
 
-    // Bei jedem Wechsel der Song-ID: Player neu initialisieren
-    LaunchedEffect(songId) {
+    val currentSongId by rememberUpdatedState(newValue = songId)
+
+    LaunchedEffect(currentSongId) {
         playerViewModel.stopAndRelease()
         playerViewModel.updateTotalDuration(playerViewModel.parseDuration(song.duration))
-        playerViewModel.playSong(song.audioUrl, playerViewModel.parseDuration(song.duration))
+        playerViewModel.playSong(
+            song.audioUrl,
+            durationSeconds = playerViewModel.parseDuration(song.duration)
+        )
     }
+
 
     Scaffold(
         topBar = {
