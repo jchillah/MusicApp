@@ -39,15 +39,7 @@ import de.syntax_institut.musicapp.ui.viewModel.PlayerViewModel
 import de.syntax_institut.musicapp.ui.viewModel.SongListViewModel
 
 /**
- * Minimierte Player-Leiste, die den aktuell abgespielten Song kontrolliert.
- *
- * Zeigt Titel, Interpret, Cover und Steuerungsknöpfe für vorherigen, abspielen/pause,
- * nächsten Song sowie das Maximieren des Players an.
- *
- * @param onExpand          Callback, um den vollständigen Player-Screen zu öffnen.
- * @param songListViewModel ViewModel für Song-Liste und aktuelle Auswahl.
- * @param playerViewModel   ViewModel für MediaPlayer-Steuerung.
- * @param isDarkTheme       Gibt an, ob der Dark Mode aktiv ist.
+ * Minimierte Player-Leiste mit Kontrollen für Prev / Play-Pause / Next.
  */
 @Composable
 fun BottomPlayerBar(
@@ -60,12 +52,11 @@ fun BottomPlayerBar(
     val currentId by songListViewModel.currentSongId.collectAsState()
     val isPlaying by playerViewModel.isPlaying.collectAsState(initial = false)
 
-    // Nur anzeigen, wenn ein Song ausgewählt
     val song = currentId?.let { id -> songs.firstOrNull { it.id == id } } ?: return
     val bg = if (isDarkTheme) LightGold else LightGreen
 
     Row(
-        Modifier
+        modifier = Modifier
             .fillMaxWidth()
             .height(64.dp)
             .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
@@ -86,80 +77,65 @@ fun BottomPlayerBar(
             Text(song.title, style = MaterialTheme.typography.bodyLarge, maxLines = 1)
             Text(song.artist, style = MaterialTheme.typography.bodySmall, maxLines = 1)
         }
+
         // Vorheriger Song
         IconButton(onClick = {
             val idx = songs.indexOf(song)
             if (idx > 0) {
                 val prev = songs[idx - 1]
                 songListViewModel.selectSong(prev.id)
-                playerViewModel.playPause(prev.audioUrl)
+                val dur = playerViewModel.parseDuration(prev.duration)
+                playerViewModel.playSong(prev.audioUrl, dur)
             }
         }) {
-            Icon(
-                Icons.Default.SkipPrevious,
-                contentDescription = "Vorheriger",
-                tint = Color.Black
-            )
+            Icon(Icons.Default.SkipPrevious, contentDescription = "Vorheriger", tint = Color.Black)
         }
+
         // Play/Pause
-        IconButton(onClick = { playerViewModel.playPause(song.audioUrl) }) {
+        IconButton(onClick = {
+            if (isPlaying) playerViewModel.togglePlayPause()
+            else {
+                // falls pausiert, einfach erneut starten
+                playerViewModel.togglePlayPause()
+            }
+        }) {
             Icon(
                 imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
                 contentDescription = if (isPlaying) "Pause" else "Play",
                 tint = Color.Black
             )
         }
+
         // Nächster Song
         IconButton(onClick = {
             val idx = songs.indexOf(song)
             if (idx < songs.size - 1) {
                 val next = songs[idx + 1]
                 songListViewModel.selectSong(next.id)
-                playerViewModel.playPause(next.audioUrl)
+                val dur = playerViewModel.parseDuration(next.duration)
+                playerViewModel.playSong(next.audioUrl, dur)
             }
         }) {
-            Icon(
-                Icons.Default.SkipNext,
-                contentDescription = "Nächster",
-                tint = Color.Black
-            )
+            Icon(Icons.Default.SkipNext, contentDescription = "Nächster", tint = Color.Black)
         }
+
         // Maximieren
         IconButton(onClick = onExpand) {
-            Icon(
-                Icons.Default.ExpandLess,
-                contentDescription = "Maximieren",
-                tint = Color.Black
-            )
+            Icon(Icons.Default.ExpandLess, contentDescription = "Maximieren", tint = Color.Black)
         }
     }
 }
 
-@Preview("BottomPlayerBar Light", showBackground = true)
-@Preview(
-    name = "BottomPlayerBar Dark",
-    showBackground = true,
-    uiMode = Configuration.UI_MODE_NIGHT_YES
-)
+@Preview(name = "Light", showBackground = true)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true)
 @Composable
 fun BottomPlayerBarPreviews() {
     val songsVm = SongListViewModel()
     val playerVm = PlayerViewModel()
-
     MusicAppTheme(darkTheme = false) {
-        BottomPlayerBar(
-            onExpand = {},
-            songListViewModel = songsVm,
-            playerViewModel = playerVm,
-            isDarkTheme = false
-        )
+        BottomPlayerBar({}, songsVm, playerVm, isDarkTheme = false)
     }
     MusicAppTheme(darkTheme = true) {
-        BottomPlayerBar(
-            onExpand = {},
-            songListViewModel = songsVm,
-            playerViewModel = playerVm,
-            isDarkTheme = true
-        )
+        BottomPlayerBar({}, songsVm, playerVm, isDarkTheme = true)
     }
 }

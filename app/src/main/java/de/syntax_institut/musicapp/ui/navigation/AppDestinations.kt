@@ -4,27 +4,40 @@ import androidx.navigation.NamedNavArgument
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
-
+import de.syntax_institut.musicapp.data.PlayerRouteModel
 
 /**
- * Liefert die Routen-Konfiguration für alle Screens der App.
+ * Zentralisierte Routen-Konfiguration für die Navigation in der MusicApp.
+ *
+ * Hier werden alle Destinations (Bildschirme) und deren Parameter definiert.
  */
 object AppDestinations {
-    // Routen ohne Parameter
+    /** Route für den Home-Screen. */
     const val Home = "home"
+
+    /** Route für den Search-Screen. */
     const val Search = "search"
+
+    /** Route für den Profile-Screen. */
     const val Profile = "profile"
 
-    // Route mit Parameter {songId}
+    /**
+     * Route für den Player-Screen mit Platzhalter für die Song-ID.
+     * Die ID wird beim Navigieren in die tatsächliche Route eingesetzt.
+     */
     const val Player = "player/{songId}"
 
     /**
-     * Hilfsfunktion, um eine konkrete Player-Route mit Song-ID zu erzeugen.
+     * Hilfsfunktion zum Erzeugen einer konkreten Player-Route mit übergebener Song-ID.
+     *
+     * @param songId Die eindeutige Kennung des abzuspielenden Songs.
+     * @return Vollständige Route im Format "player/42".
      */
-    fun PlayerRoute(songId: Int) = "player/$songId"
+    fun PlayerRoute(songId: Int): String = "player/$songId"
 
     /**
-     * Argumentdefinition für den Player-Screen.
+     * Definition der Argumente, die der Player-Screen erwartet.
+     * Hier wird angegeben, dass "songId" als Integer übergeben wird.
      */
     val playerArguments: List<NamedNavArgument>
         get() = listOf(
@@ -32,15 +45,13 @@ object AppDestinations {
         )
 
     /**
-     * Liest aus dem NavBackStackEntry die Parameter und liefert das [PlayerRouteModel].
+     * Erweiterungsfunktion, um aus einem NavBackStackEntry das PlayerRouteModel zu extrahieren.
+     *
+     * @receiver NavBackStackEntry mit den geladenen Argumenten.
+     * @return PlayerRouteModel mit der ausgelesenen Song-ID.
      */
     fun NavBackStackEntry.toPlayerRouteModel(): PlayerRouteModel {
         val id = arguments?.getInt("songId") ?: 0
         return PlayerRouteModel(id)
     }
 }
-
-/**
- * Datenklasse für die Parameter des Player-Screens.
- */
-data class PlayerRouteModel(val songId: Int)
