@@ -60,45 +60,45 @@ fun AppStart() {
                 composable(AppDestinations.Home) {
                     HomeScreen(
                         onNavigateToProfile = { navController.navigate(AppDestinations.Profile) },
-                        onNavigateToSearch  = { navController.navigate(AppDestinations.Search) },
-                        onPlaySong          = { id ->
+                        onNavigateToSearch = { navController.navigate(AppDestinations.Search) },
+                        onPlaySong = { id ->
                             songListViewModel.selectSong(id)
                             isMinimized = false
                             navController.navigate(AppDestinations.PlayerRoute(id))
                         },
                         songListViewModel = songListViewModel,
-                        isDarkTheme       = isDarkTheme
+                        isDarkTheme = isDarkTheme
                     )
                 }
                 composable(AppDestinations.Search) {
                     SearchScreen(
-                        onPlaySong          = { id ->
+                        onPlaySong = { id ->
                             songListViewModel.selectSong(id)
                             isMinimized = false
                             navController.navigate(AppDestinations.PlayerRoute(id))
                         },
-                        navController       = navController,
-                        songListViewModel   = songListViewModel
+                        navController = navController,
+                        songListViewModel = songListViewModel
                     )
                 }
                 composable(AppDestinations.Profile) {
                     ProfileScreen(
-                        onBackClick    = { navController.popBackStack() },
-                        isDarkTheme    = isDarkTheme,
-                        onToggleTheme  = { isDarkTheme = !isDarkTheme }
+                        onBackClick = { navController.popBackStack() },
+                        isDarkTheme = isDarkTheme,
+                        onToggleTheme = { isDarkTheme = !isDarkTheme }
                     )
                 }
                 composable(
-                    route      = AppDestinations.Player,
-                    arguments  = AppDestinations.playerArguments
+                    route = AppDestinations.Player,
+                    arguments = AppDestinations.playerArguments
                 ) { backStackEntry ->
                     val model = backStackEntry.toPlayerRouteModel()
                     PlayerScreen(
-                        songId           = model.songId,
-                        navController    = navController,
-                        songListViewModel= songListViewModel,
-                        playerViewModel  = playerViewModel,
-                        onMinimize       = {
+                        songId = model.songId,
+                        navController = navController,
+                        songListViewModel = songListViewModel,
+                        playerViewModel = playerViewModel,
+                        onMinimize = {
                             isMinimized = true
                             playerViewModel.minimize()
                             navController.navigate(AppDestinations.Home) {
