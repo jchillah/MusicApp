@@ -13,22 +13,23 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import de.syntax_institut.musicapp.ui.viewModel.SongViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
+import de.syntax_institut.musicapp.ui.viewModel.SongListViewModel
 
 /**
- * Gitter-Ansicht mit Klick-Callback.
+ * Zeigt eine Gitteransicht (2 Spalten) aller Songs.
  *
- * @param viewModel Liefert die Song-Daten.
- * @param onPlay Callback, wenn ein Song angeklickt wird.
- * @param modifier Optionaler Modifier.
+ * @param modifier            Optionaler [Modifier] für äußere Steuerung.
+ * @param songListViewModel   ViewModel mit der Liste aller Songs.
+ * @param onPlay              Callback, wenn ein Song gestartet werden soll.
  */
 @Composable
 fun SongsGrid(
-    viewModel: SongViewModel,
+    modifier: Modifier = Modifier,
+    songListViewModel: SongListViewModel = viewModel(),
     onPlay: (Int) -> Unit,
-    modifier: Modifier = Modifier
 ) {
-    val songs by viewModel.songs.collectAsState()
+    val songs by songListViewModel.songs.collectAsState()
 
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
@@ -39,22 +40,23 @@ fun SongsGrid(
         items(songs, key = { it.id }) { song ->
             SongItem(
                 song = song,
-                onRemove = { id -> viewModel.removeSongById(id) },
+                onRemove = { id -> songListViewModel.removeSongById(id) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(1f)
-                    .clickable { onPlay(song.id) }
+                    .clickable { onPlay(song.id) },
             )
         }
     }
 }
 
+/** Vorschau der [SongsGrid]-Composable. */
 @Preview(showBackground = true)
 @Composable
 fun SongsGridPreview() {
-    val vm = SongViewModel()
+    val vm = SongListViewModel()
     SongsGrid(
-        viewModel = vm,
+        songListViewModel = vm,
         onPlay = {}
     )
 }

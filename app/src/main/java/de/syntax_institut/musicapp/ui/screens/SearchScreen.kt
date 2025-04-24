@@ -29,17 +29,18 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import de.syntax_institut.musicapp.ui.components.SongItem
 import de.syntax_institut.musicapp.ui.theme.MusicAppTheme
-import de.syntax_institut.musicapp.ui.viewModel.SongViewModel
+import de.syntax_institut.musicapp.ui.viewModel.PlayerViewModel
+import de.syntax_institut.musicapp.ui.viewModel.SongListViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchScreen(
     onPlaySong: (Int) -> Unit,
     navController: NavController,
-    viewModel: SongViewModel = viewModel()
+    songListViewModel: SongListViewModel = viewModel(),
 ) {
-    val query by viewModel.query.collectAsState()
-    val filtered by viewModel.filteredSongs.collectAsState()
+    val query by songListViewModel.query.collectAsState()
+    val filtered by songListViewModel.filteredSongs.collectAsState()
 
     Scaffold(
         topBar = {
@@ -61,10 +62,11 @@ fun SearchScreen(
         ) {
             OutlinedTextField(
                 value = query,
-                onValueChange = { viewModel.updateQuery(it) },
+                onValueChange = { songListViewModel.updateQuery(it) },
                 label = { Text("Suche nach Song oder Künstler") },
                 singleLine = true,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text("Suchbegriff eingeben...") }
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -73,11 +75,11 @@ fun SearchScreen(
                 items(filtered, key = { it.id }) { song ->
                     SongItem(
                         song = song,
-                        onRemove = { viewModel.removeSongById(it) },
+                        onRemove = { songListViewModel.removeSongById(it) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable { onPlaySong(song.id) }
-                            .padding(vertical = 4.dp, horizontal = 8.dp)
+                            .padding(vertical = 4.dp, horizontal = 8.dp),
                     )
                 }
             }
@@ -90,14 +92,14 @@ fun SearchScreen(
 @Composable
 fun SearchScreenPreview() {
     val mockNavController = rememberNavController()
-    val mockViewModel = SongViewModel().apply {
-    }
+    val mockViewModel = SongListViewModel().apply {}
+    PlayerViewModel().apply {}
 
     MusicAppTheme {
         SearchScreen(
             onPlaySong = {},
             navController = mockNavController,
-            viewModel = mockViewModel
+            songListViewModel = mockViewModel,
         )
     }
 }

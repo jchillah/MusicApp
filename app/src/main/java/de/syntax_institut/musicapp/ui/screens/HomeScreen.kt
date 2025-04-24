@@ -21,13 +21,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.viewmodel.compose.viewModel
 import de.syntax_institut.musicapp.ui.components.SongsGrid
 import de.syntax_institut.musicapp.ui.components.SongsList
 import de.syntax_institut.musicapp.ui.theme.DeepBlack
 import de.syntax_institut.musicapp.ui.theme.LightGold
 import de.syntax_institut.musicapp.ui.theme.LightGreen
 import de.syntax_institut.musicapp.ui.theme.MusicAppTheme
-import de.syntax_institut.musicapp.ui.viewModel.SongViewModel
+import de.syntax_institut.musicapp.ui.viewModel.SongListViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,7 +36,7 @@ fun HomeScreen(
     onNavigateToProfile: () -> Unit,
     onNavigateToSearch: () -> Unit,
     onPlaySong: (Int) -> Unit,
-    viewModel: SongViewModel,
+    songListViewModel: SongListViewModel = viewModel(),
     isDarkTheme: Boolean
 ) {
     var isGrid by remember { mutableStateOf(false) }
@@ -81,13 +82,13 @@ fun HomeScreen(
     ) { padding ->
         if (isGrid) {
             SongsGrid(
-                viewModel = viewModel,
+                songListViewModel = songListViewModel,
                 onPlay = onPlaySong,
                 modifier = Modifier.padding(padding)
             )
         } else {
             SongsList(
-                viewModel = viewModel,
+                songListViewModel = songListViewModel,
                 onPlay = onPlaySong,
                 modifier = Modifier.padding(padding)
             )
@@ -100,11 +101,11 @@ fun HomeScreen(
 fun HomeScreenPreview() {
     MusicAppTheme {
         HomeScreen(
-            onPlaySong = {},
             onNavigateToProfile = {},
-            viewModel = SongViewModel(),
-            isDarkTheme = false,
-            onNavigateToSearch = {}
+            onNavigateToSearch = {},
+            onPlaySong = {},
+            songListViewModel = SongListViewModel(),
+            isDarkTheme = false
         )
     }
 }

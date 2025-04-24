@@ -1,3 +1,4 @@
+/*
 package de.syntax_institut.musicapp.ui.navigation
 
 import kotlinx.serialization.Serializable
@@ -13,3 +14,5 @@ object ProfileRoute
 
 @Serializable
 data class PlayerRoute(val songId: Int)
+
+*/

@@ -1,14 +1,9 @@
+@file:Suppress("KDocUnresolvedReference")
+
 package de.syntax_institut.musicapp.ui.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
@@ -30,17 +25,17 @@ import de.syntax_institut.musicapp.data.Song
 import de.syntax_institut.musicapp.ui.theme.MusicAppTheme
 
 /**
- * Composable zur Darstellung eines einzelnen Song-Eintrags.
+ * Zeigt eine Karte mit Cover, Titel, Künstler und Löschen-Button für einen Song an.
  *
- * @param song     Song-Objekt mit allen notwendigen Informationen.
- * @param onRemove Callback, der die ID des Songs liefert, wenn er gelöscht werden soll.
- * @param modifier Optionaler [Modifier], um dieses Element von außen zu konfigurieren.
+ * @param song            Das [Song]-Objekt mit Metadaten und Cover-URL.
+ * @param onRemove        Callback, das die [song.id] liefert, wenn der Nutzer auf Löschen klickt.
+ * @param modifier        Optionaler [Modifier], um das Layout von außen anzupassen.
  */
 @Composable
 fun SongItem(
     song: Song,
     onRemove: (Int) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Card(
         modifier = modifier
@@ -51,16 +46,12 @@ fun SongItem(
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
     ) {
         Box {
-            // Hintergrundbild
             AsyncImage(
                 model = song.coverUrl,
                 contentDescription = "${song.title} Cover",
                 contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxSize()
+                modifier = Modifier.fillMaxSize()
             )
-
-            // Overlay mit Songinformationen
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -103,7 +94,7 @@ fun SongItem(
     }
 }
 
-/** Vorschau für SongItem ohne externe Callback-Verweise. */
+/** Vorschau der [SongItem]-Composable. */
 @Preview(showBackground = true)
 @Composable
 fun SongItemPreview() {
@@ -114,10 +105,10 @@ fun SongItemPreview() {
                 title = "Shape of You",
                 artist = "Ed Sheeran",
                 duration = "3:53",
-                coverUrl = "https://i.ytimg.com/vi/bXSyEhwpJLo/maxresdefault.jpg"
+                coverUrl = "https://...jpg",
+                audioUrl = "https://...mp3"
             ),
-            onRemove = {}
+            onRemove = {},
         )
     }
 }
-
