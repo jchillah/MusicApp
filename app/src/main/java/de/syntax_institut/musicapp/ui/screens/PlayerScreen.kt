@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.SkipNext
@@ -24,6 +25,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -35,29 +37,49 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
+import de.syntax_institut.musicapp.ui.navigation.AppDestinations
 import de.syntax_institut.musicapp.ui.theme.MusicAppTheme
-import de.syntax_institut.musicapp.ui.viewModel.SongViewModel
+import de.syntax_institut.musicapp.ui.viewModel.PlayerViewModel
+import de.syntax_institut.musicapp.ui.viewModel.SongListViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlayerScreen(
     songId: Int,
     navController: NavController,
-    viewModel: SongViewModel = viewModel()
+    songListViewModel: SongListViewModel = viewModel(),
+    playerViewModel: PlayerViewModel = viewModel(),
+    onMinimize: () -> Unit
 ) {
-    val songs by viewModel.songs.collectAsState()
-    val isPlaying by viewModel.isPlaying.collectAsState()
-    val position by viewModel.position.collectAsState()
+    val isPlaying     by playerViewModel.isPlaying.collectAsState(initial = false)
+    val position      by playerViewModel.position.collectAsState(initial = 0f)
+    val totalDuration by playerViewModel.totalDuration.collectAsState(initial = 0f)
+    val songs         by songListViewModel.songs.collectAsState(initial = emptyList())
+    val song          = songs.firstOrNull { it.id == songId } ?: return
 
-    val song = songs.firstOrNull { it.id == songId } ?: return
+    // Bei Wechsel der songId: altes Release, Dauer setzen, neuen Song starten
+    LaunchedEffect(songId) {
+        playerViewModel.stopAndRelease()
+        playerViewModel.updateTotalDuration(playerViewModel.parseDuration(song.duration))
+        playerViewModel.playPause(song.audioUrl)
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Player") },
                 navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) {
+                    IconButton(onClick = {
+                        onMinimize()
+                        // zurück zum Home, ohne BackStack-Inclusive
+                        navController.popBackStack(AppDestinations.Home, false)
+                    }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Zurück")
+                    }
+                },
+                actions = {
+                    IconButton(onClick = onMinimize) {
+                        Icon(Icons.Default.ExpandMore, contentDescription = "Minimieren")
                     }
                 }
             )
@@ -76,35 +98,56 @@ fun PlayerScreen(
                 modifier = Modifier.size(250.dp),
                 contentScale = ContentScale.Crop
             )
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(Modifier.height(16.dp))
             Text(song.title, style = MaterialTheme.typography.headlineSmall)
             Text(song.artist, style = MaterialTheme.typography.bodyMedium)
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(Modifier.height(24.dp))
+
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(playerViewModel.formatDuration(position), style = MaterialTheme.typography.bodyMedium)
+                Text(playerViewModel.formatDuration(totalDuration), style = MaterialTheme.typography.bodyMedium)
+            }
+            Spacer(Modifier.height(8.dp))
 
             Slider(
                 value = position,
-                onValueChange = { viewModel.updatePosition(it) },
+                onValueChange = { playerViewModel.updatePosition(it) },
+                valueRange = 0f..totalDuration,
                 modifier = Modifier.fillMaxWidth()
             )
-
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(Modifier.height(16.dp))
 
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = { /* vorheriger Song */ }) {
-                    Icon(Icons.Default.SkipPrevious, contentDescription = "Zurück")
+                IconButton(onClick = {
+                    val idx = songs.indexOf(song)
+                    if (idx > 0) {
+                        val prev = songs[idx - 1]
+                        navController.navigate(AppDestinations.PlayerRoute(prev.id))
+                    }
+                }) {
+                    Icon(Icons.Default.SkipPrevious, contentDescription = "Vorheriger Song")
                 }
-                IconButton(onClick = { viewModel.togglePlayPause() }) {
+                IconButton(onClick = { playerViewModel.playPause(song.audioUrl) }) {
                     Icon(
                         imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
                         contentDescription = if (isPlaying) "Pause" else "Play"
                     )
                 }
-                IconButton(onClick = { /* nächster Song */ }) {
-                    Icon(Icons.Default.SkipNext, contentDescription = "Weiter")
+                IconButton(onClick = {
+                    val idx = songs.indexOf(song)
+                    if (idx < songs.size - 1) {
+                        val next = songs[idx + 1]
+                        navController.navigate(AppDestinations.PlayerRoute(next.id))
+                    }
+                }) {
+                    Icon(Icons.Default.SkipNext, contentDescription = "Nächster Song")
                 }
             }
         }
@@ -115,11 +158,12 @@ fun PlayerScreen(
 @Composable
 fun PlayerScreenPreview() {
     MusicAppTheme {
-        val navController = rememberNavController()
         PlayerScreen(
             songId = 1,
-            navController = navController,
-            viewModel = SongViewModel()
+            navController = rememberNavController(),
+            songListViewModel = SongListViewModel(),
+            playerViewModel = PlayerViewModel(),
+            onMinimize = {}
         )
     }
 }
